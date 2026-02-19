@@ -229,6 +229,9 @@ export default function AuthPage() {
           <Tab active={tab === 'register'} onClick={() => { setTab('register'); setError(''); }}>Register</Tab>
         </Tabs>
 
+        <div style={{ textAlign: "right", marginBottom: 16, marginTop: -4 }}>
+          <a href="/admin/login" style={{ fontSize: 12, color: "#a855f7", display: "inline-flex", alignItems: "center", gap: 4 }}>🛡️ Admin Portal →</a>
+        </div>
         <AnimatePresence mode="wait">
           {tab === 'login' ? (
             <motion.form key="login" onSubmit={handleLogin}
