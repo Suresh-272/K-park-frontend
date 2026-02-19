@@ -1,0 +1,88 @@
+// src/App.js
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider } from 'styled-components';
+import { Toaster } from 'react-hot-toast';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { GlobalStyles } from './styles/GlobalStyles';
+import { theme } from './styles/theme';
+import { LoadingPage } from './components/common/UI';
+
+import AuthPage from './pages/AuthPage';
+import DashboardPage from './pages/DashboardPage';
+import SlotsPage from './pages/SlotsPage';
+import BookingsPage from './pages/BookingsPage';
+import WaitlistPage from './pages/WaitlistPage';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminBookings from './pages/admin/AdminBookings';
+
+// Route guards
+const PrivateRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  if (loading) return <LoadingPage />;
+  return user ? children : <Navigate to="/login" replace />;
+};
+
+const AdminRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  if (loading) return <LoadingPage />;
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role !== 'admin') return <Navigate to="/dashboard" replace />;
+  return children;
+};
+
+const PublicRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  if (loading) return <LoadingPage />;
+  return user ? <Navigate to="/dashboard" replace /> : children;
+};
+
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/login" element={<PublicRoute><AuthPage /></PublicRoute>} />
+
+      <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
+      <Route path="/slots" element={<PrivateRoute><SlotsPage /></PrivateRoute>} />
+      <Route path="/bookings" element={<PrivateRoute><BookingsPage /></PrivateRoute>} />
+      <Route path="/waitlist" element={<PrivateRoute><WaitlistPage /></PrivateRoute>} />
+
+      <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+      <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
+      <Route path="/admin/bookings" element={<AdminRoute><AdminBookings /></AdminRoute>} />
+
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider theme={theme}>
+      <GlobalStyles />
+      <BrowserRouter>
+        <AuthProvider>
+          <AppRoutes />
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              style: {
+                background: '#0f1526',
+                color: '#f0f6ff',
+                border: '1px solid rgba(99,179,237,0.2)',
+                borderRadius: '12px',
+                fontSize: '14px',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+              },
+              success: { iconTheme: { primary: '#10b981', secondary: '#fff' } },
+              error: { iconTheme: { primary: '#ef4444', secondary: '#fff' } },
+              duration: 4000,
+            }}
+          />
+        </AuthProvider>
+      </BrowserRouter>
+    </ThemeProvider>
+  );
+}
