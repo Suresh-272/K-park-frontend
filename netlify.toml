@@ -1,0 +1,10 @@
+# netlify.toml — place this in your kpark-frontend root folder
+
+[build]
+  command = "npm run build"
+  publish = "build"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
