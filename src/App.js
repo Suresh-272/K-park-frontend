@@ -19,6 +19,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminSlots from './pages/admin/AdminSlots';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminBookings from './pages/admin/AdminBookings';
+import ErrorBoundary from './components/common/ErrorBoundary';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -56,10 +57,10 @@ function AppRoutes() {
       <Route path="/waitlist" element={<PrivateRoute><WaitlistPage /></PrivateRoute>} />
 
       {/* Admin routes */}
-      <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-      <Route path="/admin/slots" element={<AdminRoute><AdminSlots /></AdminRoute>} />
-      <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
-      <Route path="/admin/bookings" element={<AdminRoute><AdminBookings /></AdminRoute>} />
+      <Route path="/admin/dashboard" element={<AdminRoute><ErrorBoundary><AdminDashboard /></ErrorBoundary></AdminRoute>} />
+      <Route path="/admin/slots" element={<AdminRoute><ErrorBoundary><AdminSlots /></ErrorBoundary></AdminRoute>} />
+      <Route path="/admin/users" element={<AdminRoute><ErrorBoundary><AdminUsers /></ErrorBoundary></AdminRoute>} />
+      <Route path="/admin/bookings" element={<AdminRoute><ErrorBoundary><AdminBookings /></ErrorBoundary></AdminRoute>} />
 
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
