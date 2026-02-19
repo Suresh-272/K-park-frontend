@@ -3,82 +3,14 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
-import {
-  MdLocalParking, MdCheckCircle, MdCancel, MdExtension,
-  MdAccessTime, MdDirectionsCar, MdCalendarToday, MdFilterList
-} from 'react-icons/md';
+import { MdLocalParking, MdCheckCircle, MdCancel, MdExtension, MdAccessTime, MdCalendarToday, MdClose } from 'react-icons/md';
 import { bookingAPI } from '../services/api';
 import {
-  PageWrapper, PageHeader, Title, Text, Card, Badge,
-  Button, Flex, Grid, EmptyState, Spinner, Select, InputGroup, Label,
-  GlassCard, SectionTitle
+  PageWrapper, PageHeader, Title, Text, Card, Badge, Button,
+  Flex, EmptyState, Spinner, Select, InputGroup, Label,
+  ModalBackdrop, ModalSheet
 } from '../components/common/UI';
 import Layout from '../components/common/Layout';
-
-const BookingRow = styled(motion.div)`
-  background: ${({ theme }) => theme.colors.bgCard};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.radii.lg};
-  padding: 20px 24px;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 16px;
-  align-items: center;
-  transition: border-color 0.2s, transform 0.2s;
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 4px;
-    background: ${({ status }) =>
-      status === 'active' ? '#10b981' :
-      status === 'cancelled' ? '#ef4444' :
-      status === 'expired' ? '#64748b' : '#3b82f6'};
-  }
-
-  &:hover {
-    border-color: ${({ theme }) => theme.colors.borderHover};
-    transform: translateX(2px);
-  }
-
-  @media (max-width: 600px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-const SlotIcon = styled.div`
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  background: ${({ status }) =>
-    status === 'active' ? 'rgba(16,185,129,0.1)' :
-    status === 'cancelled' ? 'rgba(239,68,68,0.1)' : 'rgba(71,85,105,0.1)'};
-  flex-shrink: 0;
-`;
-
-const ExtendModal = styled(motion.div)`
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-`;
-
-const Overlay = styled(motion.div)`
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.7);
-  backdrop-filter: blur(8px);
-`;
 
 const TabBar = styled.div`
   display: flex;
@@ -86,13 +18,15 @@ const TabBar = styled.div`
   background: ${({ theme }) => theme.colors.surface};
   padding: 4px;
   border-radius: ${({ theme }) => theme.radii.md};
-  margin-bottom: 24px;
-  flex-wrap: wrap;
+  margin-bottom: 18px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
 `;
 
 const Tab = styled.button`
-  flex: 1;
-  min-width: 80px;
+  flex-shrink: 0;
   padding: 8px 14px;
   border: none;
   border-radius: 8px;
@@ -103,10 +37,48 @@ const Tab = styled.button`
   font-family: ${({ theme }) => theme.fonts.body};
   background: ${({ active, theme }) => active ? theme.colors.primary : 'transparent'};
   color: ${({ active, theme }) => active ? '#fff' : theme.colors.textSecondary};
+  min-height: 38px;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
 `;
 
-const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
-const rowAnim = { hidden: { opacity: 0, x: -20 }, show: { opacity: 1, x: 0 } };
+const BookingCard = styled(Card)`
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  border-left: 4px solid ${({ status }) =>
+    status === 'active' ? '#10b981' : status === 'cancelled' ? '#ef4444' : '#334155'};
+  border-radius: 12px;
+
+  &:active { transform: scale(0.99); }
+`;
+
+const BookingGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: start;
+`;
+
+const MetaRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  margin-top: 4px;
+  flex-wrap: wrap;
+`;
+
+const ActionBtns = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+  flex-shrink: 0;
+`;
+
+const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.05 } } };
+const rowAnim = { hidden: { opacity: 0, x: -16 }, show: { opacity: 1, x: 0 } };
 
 export default function BookingsPage() {
   const [bookings, setBookings] = useState([]);
@@ -154,7 +126,7 @@ export default function BookingsPage() {
     setActionLoading(extending._id + '_extend');
     try {
       await bookingAPI.extend(extending._id, { extraMinutes: Number(extraMinutes) });
-      toast.success(`⏱️ Booking extended by ${extraMinutes} minutes!`);
+      toast.success(`⏱️ Extended by ${extraMinutes} min!`);
       setExtending(null);
       fetchBookings();
     } catch (err) { toast.error(err.response?.data?.message || 'Cannot extend'); }
@@ -163,7 +135,7 @@ export default function BookingsPage() {
 
   const tabs = [
     { key: 'active', label: '🟢 Active' },
-    { key: 'completed', label: '✅ Completed' },
+    { key: 'completed', label: '✅ Done' },
     { key: 'cancelled', label: '❌ Cancelled' },
     { key: 'expired', label: '⏰ Expired' },
     { key: 'all', label: 'All' },
@@ -174,8 +146,8 @@ export default function BookingsPage() {
       <PageWrapper initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <PageHeader>
           <div>
-            <Title size="1.8rem">My Bookings</Title>
-            <Text muted size="14px" style={{ marginTop: 4 }}>Manage your parking reservations</Text>
+            <Title size="1.6rem">My Bookings</Title>
+            <Text muted size="13px" style={{ marginTop: 3 }}>Manage your reservations</Text>
           </div>
         </PageHeader>
 
@@ -198,71 +170,80 @@ export default function BookingsPage() {
         ) : (
           <motion.div variants={container} initial="hidden" animate="show">
             {bookings.map(booking => (
-              <BookingRow key={booking._id} status={booking.status} variants={rowAnim} style={{ marginBottom: 12 }}>
-                <SlotIcon status={booking.status}>
-                  {booking.slot?.slotType === 'two-wheeler' ? '🏍️' : '🚗'}
-                </SlotIcon>
+              <BookingCard key={booking._id} status={booking.status} variants={rowAnim}>
+                <BookingGrid>
+                  <div>
+                    <Flex gap="8px" align="center" wrap="wrap" style={{ marginBottom: 6 }}>
+                      <Text style={{ fontWeight: 700, fontSize: 15 }}>
+                        {booking.slot?.slotType === 'two-wheeler' ? '🏍️' : '🚗'} Slot {booking.slot?.slotNumber || '—'}
+                      </Text>
+                      <Badge status={booking.status}>{booking.status}</Badge>
+                    </Flex>
+                    <MetaRow>
+                      <MdCalendarToday size={12} />{booking.bookingDate}
+                    </MetaRow>
+                    <MetaRow>
+                      <MdAccessTime size={12} />{booking.startTime} – {booking.endTime}
+                    </MetaRow>
+                    {booking.arrivedAt && (
+                      <Text size="11px" style={{ color:'#10b981', marginTop: 4 }}>
+                        ✅ Arrived {new Date(booking.arrivedAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}
+                      </Text>
+                    )}
+                    {booking.extensionCount > 0 && (
+                      <Text muted size="11px">Extensions: {booking.extensionCount}/2</Text>
+                    )}
+                  </div>
 
-                <div>
-                  <Flex gap="10px" align="center" style={{ marginBottom: 6 }}>
-                    <Text style={{ fontWeight: 700, fontSize: 16 }}>
-                      Slot {booking.slot?.slotNumber || '—'}
-                    </Text>
-                    <Badge status={booking.status}>{booking.status}</Badge>
-                    <Badge status={booking.slot?.category}>{booking.slot?.category}</Badge>
-                    {booking.isExtended && <Badge status="notified">Extended</Badge>}
-                  </Flex>
-                  <Flex gap="16px" wrap="wrap">
-                    <Flex gap="6px" align="center">
-                      <MdCalendarToday color="#64748b" size={13} />
-                      <Text muted size="13px">{booking.bookingDate}</Text>
-                    </Flex>
-                    <Flex gap="6px" align="center">
-                      <MdAccessTime color="#64748b" size={13} />
-                      <Text muted size="13px">{booking.startTime} – {booking.endTime}</Text>
-                    </Flex>
-                    <Flex gap="6px" align="center">
-                      <MdDirectionsCar color="#64748b" size={13} />
-                      <Text muted size="13px">{booking.user?.vehicleNumber}</Text>
-                    </Flex>
-                  </Flex>
-                  {booking.arrivedAt && (
-                    <Text size="12px" style={{ color: '#10b981', marginTop: 4 }}>
-                      ✅ Arrived at {new Date(booking.arrivedAt).toLocaleTimeString()}
-                    </Text>
+                  {booking.status === 'active' && (
+                    <ActionBtns>
+                      {!booking.arrivedAt && (
+                        <Button size="sm" variant="success"
+                          disabled={actionLoading === booking._id + '_arrival'}
+                          onClick={() => handleMarkArrival(booking._id)}>
+                          {actionLoading === booking._id + '_arrival'
+                            ? <Spinner size="13px" />
+                            : <><MdCheckCircle /><span style={{display:'none'}}>Arrived</span></>}
+                        </Button>
+                      )}
+                      {booking.extensionCount < 2 && (
+                        <Button size="sm" variant="warning" onClick={() => setExtending(booking)}>
+                          <MdExtension />
+                        </Button>
+                      )}
+                      <Button size="sm" variant="danger"
+                        disabled={actionLoading === booking._id + '_cancel'}
+                        onClick={() => handleCancel(booking._id)}>
+                        {actionLoading === booking._id + '_cancel'
+                          ? <Spinner size="13px" /> : <MdCancel />}
+                      </Button>
+                    </ActionBtns>
                   )}
-                  {booking.extensionCount > 0 && (
-                    <Text muted size="12px" style={{ marginTop: 2 }}>
-                      Extensions used: {booking.extensionCount}/2
-                    </Text>
-                  )}
-                </div>
+                </BookingGrid>
 
+                {/* Action labels on mobile for active bookings */}
                 {booking.status === 'active' && (
-                  <Flex gap="8px" direction="column" align="flex-end">
+                  <Flex gap="6px" style={{ marginTop: 12, flexWrap: 'wrap' }}>
                     {!booking.arrivedAt && (
-                      <Button size="sm" variant="success"
+                      <Button size="sm" variant="success" style={{ flex:1 }}
                         disabled={actionLoading === booking._id + '_arrival'}
                         onClick={() => handleMarkArrival(booking._id)}>
-                        {actionLoading === booking._id + '_arrival'
-                          ? <Spinner size="14px" /> : <><MdCheckCircle /> Arrived</>}
+                        {actionLoading === booking._id + '_arrival' ? <Spinner size="13px" /> : <><MdCheckCircle /> Mark Arrived</>}
                       </Button>
                     )}
                     {booking.extensionCount < 2 && (
-                      <Button size="sm" variant="warning"
-                        onClick={() => setExtending(booking)}>
+                      <Button size="sm" variant="warning" style={{ flex:1 }} onClick={() => setExtending(booking)}>
                         <MdExtension /> Extend
                       </Button>
                     )}
-                    <Button size="sm" variant="danger"
+                    <Button size="sm" variant="danger" style={{ flex:1 }}
                       disabled={actionLoading === booking._id + '_cancel'}
                       onClick={() => handleCancel(booking._id)}>
-                      {actionLoading === booking._id + '_cancel'
-                        ? <Spinner size="14px" /> : <><MdCancel /> Cancel</>}
+                      {actionLoading === booking._id + '_cancel' ? <Spinner size="13px" /> : <><MdCancel /> Cancel</>}
                     </Button>
                   </Flex>
                 )}
-              </BookingRow>
+              </BookingCard>
             ))}
           </motion.div>
         )}
@@ -271,19 +252,23 @@ export default function BookingsPage() {
       {/* Extend Modal */}
       <AnimatePresence>
         {extending && (
-          <ExtendModal>
-            <Overlay initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setExtending(null)} />
-            <GlassCard as={motion.div}
-              style={{ position:'relative', zIndex:1, width:'100%', maxWidth:380, border:'1px solid rgba(245,158,11,0.3)' }}
-              initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}>
-              <Title size="1.1rem" style={{ marginBottom: 6 }}>Extend Booking</Title>
-              <Text muted size="13px" style={{ marginBottom: 20 }}>
-                Slot {extending.slot?.slotNumber} · Current end: {extending.endTime}
-                &nbsp;· Extension {extending.extensionCount + 1}/2
+          <ModalBackdrop initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+            onClick={() => setExtending(null)}>
+            <ModalSheet onClick={e => e.stopPropagation()}
+              initial={{ opacity:0, y:60 }} animate={{ opacity:1, y:0 }}
+              exit={{ opacity:0, y:60 }} maxWidth="360px">
+              <Flex justify="space-between" align="center" style={{ marginBottom: 18 }}>
+                <Title size="1.1rem">Extend Booking</Title>
+                <button onClick={() => setExtending(null)}
+                  style={{ background:'none', border:'none', color:'#64748b', fontSize:22, cursor:'pointer', padding:4, minHeight:44, display:'flex', alignItems:'center' }}>
+                  <MdClose />
+                </button>
+              </Flex>
+              <Text muted size="13px" style={{ marginBottom: 18 }}>
+                Slot {extending.slot?.slotNumber} · Ends {extending.endTime} · Extension {extending.extensionCount + 1}/2
               </Text>
               <InputGroup style={{ marginBottom: 20 }}>
-                <Label>Extra Minutes</Label>
+                <Label>Extra Time</Label>
                 <Select value={extraMinutes} onChange={e => setExtraMinutes(e.target.value)}>
                   <option value={30}>30 minutes</option>
                   <option value={60}>1 hour</option>
@@ -293,13 +278,12 @@ export default function BookingsPage() {
               </InputGroup>
               <Flex gap="10px">
                 <Button variant="ghost" fullWidth onClick={() => setExtending(null)}>Cancel</Button>
-                <Button variant="warning" fullWidth onClick={handleExtend}
-                  disabled={!!actionLoading}>
+                <Button variant="warning" fullWidth onClick={handleExtend} disabled={!!actionLoading}>
                   {actionLoading ? <Spinner size="16px" /> : '⏱️ Extend'}
                 </Button>
               </Flex>
-            </GlassCard>
-          </ExtendModal>
+            </ModalSheet>
+          </ModalBackdrop>
         )}
       </AnimatePresence>
     </Layout>

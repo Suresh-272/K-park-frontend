@@ -2,6 +2,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import Sidebar from './Sidebar';
+import BottomNav from './BottomNav';
 
 const Wrapper = styled.div`
   display: flex;
@@ -16,7 +17,7 @@ const Main = styled.main`
 
   @media (max-width: 900px) {
     margin-left: 0;
-    padding-top: 60px;
+    padding-top: 0;
   }
 `;
 
@@ -25,6 +26,7 @@ export default function Layout({ children }) {
     <Wrapper>
       <Sidebar />
       <Main>{children}</Main>
+      <BottomNav />
     </Wrapper>
   );
 }
