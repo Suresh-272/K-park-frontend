@@ -209,10 +209,10 @@ export default function AuthPage() {
   return (
     <Page>
       <BgOrb /><BgOrb /><BgOrb />
-      <FloatingIcon size="40px" duration="6s" delay="0s" style={{ top:'10%', left:'8%' }}>🅿️</FloatingIcon>
+      {/* <FloatingIcon size="40px" duration="6s" delay="0s" style={{ top:'10%', left:'8%' }}>🅿️</FloatingIcon>
       <FloatingIcon size="28px" duration="5s" delay="1s" style={{ top:'20%', right:'10%' }}>🚗</FloatingIcon>
       <FloatingIcon size="32px" duration="7s" delay="2s" style={{ bottom:'20%', left:'12%' }}>🏢</FloatingIcon>
-      <FloatingIcon size="22px" duration="4s" delay="0.5s" style={{ bottom:'30%', right:'8%' }}>🔑</FloatingIcon>
+      <FloatingIcon size="22px" duration="4s" delay="0.5s" style={{ bottom:'30%', right:'8%' }}>🔑</FloatingIcon> */}
 
       <FormCard
         initial={{ opacity: 0, y: 30 }}
