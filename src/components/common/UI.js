@@ -9,7 +9,9 @@ const glowPulse = keyframes`
 const spinAnim = keyframes`from { transform: rotate(0deg); } to { transform: rotate(360deg); }`;
 
 // ── Card ─────────────────────────────────────────────────────────────────────
-export const Card = styled(motion.div)`
+export const Card = styled(motion.div).withConfig({
+  shouldForwardProp: (prop) => !['hoverable','glow','p'].includes(prop),
+})`
   background: ${({ theme }) => theme.colors.bgCard};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.lg};
@@ -77,7 +79,9 @@ const buttonVariants = {
   `,
 };
 
-export const Button = styled.button`
+export const Button = styled.button.withConfig({
+  shouldForwardProp: (prop) => !['variant','size','fullWidth'].includes(prop),
+})`
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -176,7 +180,9 @@ const badgeColors = {
   inactive: css`background: rgba(71,85,105,0.2); color: #64748b; border-color: rgba(71,85,105,0.3);`,
 };
 
-export const Badge = styled.span`
+export const Badge = styled.span.withConfig({
+  shouldForwardProp: (prop) => prop !== 'status',
+})`
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -192,7 +198,9 @@ export const Badge = styled.span`
 `;
 
 // ── Text ─────────────────────────────────────────────────────────────────────
-export const Title = styled.h1`
+export const Title = styled.h1.withConfig({
+  shouldForwardProp: (prop) => !['size','gradient'].includes(prop),
+})`
   font-family: ${({ theme }) => theme.fonts.display};
   font-size: ${({ size }) => size || '2rem'};
   font-weight: 700;
@@ -214,20 +222,26 @@ export const Title = styled.h1`
   }
 `;
 
-export const Text = styled.p`
+export const Text = styled.p.withConfig({
+  shouldForwardProp: (prop) => !['muted','size'].includes(prop),
+})`
   color: ${({ theme, muted }) => muted ? theme.colors.textSecondary : theme.colors.textPrimary};
   font-size: ${({ size }) => size || '14px'};
   line-height: 1.6;
 `;
 
 // ── Layout helpers ───────────────────────────────────────────────────────────
-export const Divider = styled.div`
+export const Divider = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'my',
+})`
   height: 1px;
   background: ${({ theme }) => theme.colors.border};
   margin: ${({ my }) => my || '16px'} 0;
 `;
 
-export const Flex = styled.div`
+export const Flex = styled.div.withConfig({
+  shouldForwardProp: (prop) => !['align','justify','gap','wrap','direction'].includes(prop),
+})`
   display: flex;
   align-items: ${({ align }) => align || 'center'};
   justify-content: ${({ justify }) => justify || 'flex-start'};
@@ -236,7 +250,9 @@ export const Flex = styled.div`
   flex-direction: ${({ direction }) => direction || 'row'};
 `;
 
-export const Grid = styled.div`
+export const Grid = styled.div.withConfig({
+  shouldForwardProp: (prop) => !['cols','gap','mobileCols','mobileGap'].includes(prop),
+})`
   display: grid;
   grid-template-columns: ${({ cols }) => cols || 'repeat(auto-fill, minmax(280px, 1fr))'};
   gap: ${({ gap }) => gap || '16px'};
@@ -248,7 +264,9 @@ export const Grid = styled.div`
 `;
 
 // ── Spinner ──────────────────────────────────────────────────────────────────
-export const Spinner = styled.div`
+export const Spinner = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'size',
+})`
   width: ${({ size }) => size || '24px'};
   height: ${({ size }) => size || '24px'};
   border: 2px solid rgba(59,130,246,0.2);
@@ -259,7 +277,9 @@ export const Spinner = styled.div`
 `;
 
 // ── Stat Card ────────────────────────────────────────────────────────────────
-export const StatCard = styled(Card)`
+export const StatCard = styled(Card).withConfig({
+  shouldForwardProp: (prop) => prop !== 'color',
+})`
   padding: 16px 18px;
   display: flex;
   flex-direction: column;
@@ -302,7 +322,9 @@ export const EmptyState = styled.div`
 `;
 
 // ── Page Wrapper ─────────────────────────────────────────────────────────────
-export const PageWrapper = styled(motion.div)`
+export const PageWrapper = styled(motion.div).withConfig({
+  shouldForwardProp: (prop) => !['padding'].includes(prop),
+})`
   padding: 24px 28px;
   max-width: 1400px;
   margin: 0 auto;
@@ -363,7 +385,9 @@ export const ModalBackdrop = styled(motion.div)`
   }
 `;
 
-export const ModalSheet = styled(motion.div)`
+export const ModalSheet = styled(motion.div).withConfig({
+  shouldForwardProp: (prop) => prop !== 'maxWidth',
+})`
   background: ${({ theme }) => theme.colors.bgCard};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.xl};
