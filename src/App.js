@@ -13,13 +13,11 @@ import DashboardPage from './pages/DashboardPage';
 import SlotsPage from './pages/SlotsPage';
 import BookingsPage from './pages/BookingsPage';
 import WaitlistPage from './pages/WaitlistPage';
-
-import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
-import AdminSlots from './pages/admin/AdminSlots';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminBookings from './pages/admin/AdminBookings';
 
+// Route guards
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return <LoadingPage />;
@@ -29,7 +27,7 @@ const PrivateRoute = ({ children }) => {
 const AdminRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return <LoadingPage />;
-  if (!user) return <Navigate to="/admin/login" replace />;
+  if (!user) return <Navigate to="/login" replace />;
   if (user.role !== 'admin') return <Navigate to="/dashboard" replace />;
   return children;
 };
@@ -44,20 +42,14 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
-
-      {/* Public */}
       <Route path="/login" element={<PublicRoute><AuthPage /></PublicRoute>} />
-      <Route path="/admin/login" element={<PublicRoute><AdminLogin /></PublicRoute>} />
 
-      {/* User routes */}
       <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
       <Route path="/slots" element={<PrivateRoute><SlotsPage /></PrivateRoute>} />
       <Route path="/bookings" element={<PrivateRoute><BookingsPage /></PrivateRoute>} />
       <Route path="/waitlist" element={<PrivateRoute><WaitlistPage /></PrivateRoute>} />
 
-      {/* Admin routes */}
       <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-      <Route path="/admin/slots" element={<AdminRoute><AdminSlots /></AdminRoute>} />
       <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
       <Route path="/admin/bookings" element={<AdminRoute><AdminBookings /></AdminRoute>} />
 
