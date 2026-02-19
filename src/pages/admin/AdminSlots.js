@@ -14,7 +14,7 @@ import Layout from '../../components/common/Layout';
 
 const pulse = keyframes`0%,100%{opacity:1;}50%{opacity:0.6;}`;
 
-const SlotCard = styled(motion.div)`
+const SlotCard = styled(motion.div).withConfig({ shouldForwardProp: p => !["cat"].includes(p) })`
   background: ${({ theme }) => theme.colors.bgCard};
   border: 1px solid ${({ cat }) => cat==='manager'?'rgba(168,85,247,0.25)':'rgba(59,130,246,0.15)'};
   border-radius: 12px;
@@ -37,7 +37,7 @@ const SlotCard = styled(motion.div)`
   .bottom { padding: 10px 14px; }
 `;
 
-const StatusDot = styled.div`
+const StatusDot = styled.div.withConfig({ shouldForwardProp: p => p !== "active" })`
   width: 8px; height: 8px; border-radius: 50%;
   background: ${({ active }) => active ? '#10b981' : '#ef4444'};
   box-shadow: 0 0 6px ${({ active }) => active ? 'rgba(16,185,129,0.5)' : 'rgba(239,68,68,0.4)'};

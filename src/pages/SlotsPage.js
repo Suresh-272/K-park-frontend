@@ -4,106 +4,97 @@ import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import {
-  MdLocalParking, MdDirectionsCar, MdTwoWheeler,
-  MdFilterList, MdBookmark, MdClose, MdInfoOutline
+  MdLocalParking, MdFilterList, MdBookmark, MdClose, MdInfoOutline, MdSearch
 } from 'react-icons/md';
 import { slotAPI, bookingAPI } from '../services/api';
 import {
   PageWrapper, PageHeader, Title, Text, Card, Badge,
   Button, Input, InputGroup, Label, Select, Flex, Grid,
-  SectionTitle, EmptyState, Spinner, GlassCard
+  EmptyState, Spinner, GlassCard, ModalBackdrop, ModalSheet
 } from '../components/common/UI';
 import Layout from '../components/common/Layout';
-import { useAuth } from '../context/AuthContext';
 
-const SlotCard = styled(motion.div)`
+// ── Custom props filtered from DOM ─────────────────────────────────────────
+const SlotCard = styled(motion.div).withConfig({
+  shouldForwardProp: (p) => !['isAvail', 'category'].includes(p),
+})`
   background: ${({ theme }) => theme.colors.bgCard};
-  border: 1px solid ${({ available, theme }) =>
-    available ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.2)'};
+  border: 1px solid ${({ isAvail }) => isAvail ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.2)'};
   border-radius: ${({ theme }) => theme.radii.lg};
-  padding: 20px;
-  transition: all 0.25s;
-  position: relative;
   overflow: hidden;
-  cursor: ${({ available }) => available ? 'pointer' : 'default'};
+  cursor: ${({ isAvail }) => isAvail ? 'pointer' : 'default'};
+  transition: all 0.2s;
+  position: relative;
 
   &::before {
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 3px;
-    background: ${({ available, category }) =>
-      !available ? 'linear-gradient(90deg, #ef4444, #dc2626)' :
-      category === 'manager' ? 'linear-gradient(90deg, #a855f7, #7c3aed)' :
-      'linear-gradient(90deg, #10b981, #059669)'};
+    background: ${({ isAvail, category }) =>
+      !isAvail ? 'linear-gradient(90deg,#ef4444,#dc2626)' :
+      category === 'manager' ? 'linear-gradient(90deg,#a855f7,#7c3aed)' :
+      'linear-gradient(90deg,#10b981,#059669)'};
   }
 
-  &:hover {
-    border-color: ${({ available, theme }) => available ? 'rgba(16,185,129,0.5)' : 'rgba(239,68,68,0.3)'};
-    transform: ${({ available }) => available ? 'translateY(-3px)' : 'none'};
-    box-shadow: ${({ available }) => available ? '0 8px 32px rgba(16,185,129,0.15)' : 'none'};
-  }
+  &:active { transform: ${({ isAvail }) => isAvail ? 'scale(0.97)' : 'none'}; }
 
+  .top {
+    padding: 14px 14px 10px;
+    position: relative;
+  }
   .slot-number {
-    font-family: ${({ theme }) => theme.fonts.display};
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: ${({ available }) => available ? '#10b981' : '#ef4444'};
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: ${({ isAvail }) => isAvail ? '#10b981' : '#ef4444'};
     margin-bottom: 8px;
   }
   .slot-icon {
-    font-size: 2rem;
     position: absolute;
-    right: 16px;
-    top: 16px;
-    opacity: 0.15;
+    right: 12px; top: 12px;
+    font-size: 1.6rem;
+    opacity: 0.12;
+  }
+  .bottom {
+    padding: 10px 14px 14px;
   }
 `;
 
-const FilterBar = styled(Card)`
-  padding: 20px 24px;
-  margin-bottom: 24px;
-`;
-
-const BookingModal = styled(motion.div)`
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-`;
-
-const ModalOverlay = styled(motion.div)`
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.7);
-  backdrop-filter: blur(8px);
-`;
-
-const ModalCard = styled(GlassCard)`
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  max-width: 440px;
-  border: 1px solid rgba(59,130,246,0.3);
-`;
-
-const SlotStatusDot = styled.div`
-  width: 8px;
-  height: 8px;
+const StatusDot = styled.div.withConfig({
+  shouldForwardProp: (p) => p !== 'isAvail',
+})`
+  width: 8px; height: 8px;
   border-radius: 50%;
-  background: ${({ available }) => available ? '#10b981' : '#ef4444'};
-  box-shadow: 0 0 8px ${({ available }) => available ? 'rgba(16,185,129,0.5)' : 'rgba(239,68,68,0.5)'};
-  animation: ${({ available }) => available ? 'pulse-ring 2s ease-out infinite' : 'none'};
+  flex-shrink: 0;
+  background: ${({ isAvail }) => isAvail ? '#10b981' : '#ef4444'};
+  box-shadow: 0 0 6px ${({ isAvail }) => isAvail ? 'rgba(16,185,129,0.6)' : 'rgba(239,68,68,0.5)'};
 `;
 
-const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.05 } } };
-const cardAnim = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
+const FilterPanel = styled(Card)`
+  padding: 16px;
+  margin-bottom: 18px;
+`;
+
+const FilterGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr) auto;
+  gap: 10px;
+  align-items: flex-end;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr 1fr;
+    > button { grid-column: 1 / -1; }
+  }
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr 1fr;
+  }
+`;
+
+const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.04 } } };
+const cardAnim = { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0 } };
 
 export default function SlotsPage() {
-  const { user } = useAuth();
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -123,21 +114,15 @@ export default function SlotsPage() {
     setLoading(true);
     try {
       const res = await slotAPI.getAll(params || {});
-      setSlots(res.data.data);
-    } catch { toast.error('Failed to load slots'); }
+      const data = res?.data?.data;
+      setSlots(Array.isArray(data) ? data : []);
+    } catch { toast.error('Failed to load slots'); setSlots([]); }
     finally { setLoading(false); }
   };
 
-  const handleSearch = () => {
-    fetchSlots(filters);
-    setSearched(true);
-  };
+  const handleSearch = () => { fetchSlots(filters); setSearched(true); };
 
-  const openBookingModal = (slot) => {
-    if (!slot.isAvailableForSlot && searched) {
-      toast.error('This slot is not available for the selected time.');
-      return;
-    }
+  const openModal = (slot) => {
     setSelectedSlot(slot);
     setBookingForm({ startTime: filters.startTime, endTime: filters.endTime });
   };
@@ -151,211 +136,234 @@ export default function SlotsPage() {
         startTime: bookingForm.startTime,
         endTime: bookingForm.endTime,
       });
-      toast.success(`🎉 Slot ${selectedSlot.slotNumber} booked! Check WhatsApp for confirmation.`);
+      toast.success(`🎉 Slot ${selectedSlot.slotNumber} booked!`);
       setSelectedSlot(null);
       handleSearch();
     } catch (err) {
-      const msg = err.response?.data?.message || 'Booking failed';
-      toast.error(msg);
+      toast.error(err.response?.data?.message || 'Booking failed');
       if (err.response?.data?.suggestWaitlist) {
-        toast('💡 All slots booked? Try joining the waitlist!', { icon: '📋' });
+        toast('💡 Try joining the waitlist!', { icon: '📋' });
       }
     } finally { setBookingLoading(false); }
   };
 
   const filteredSlots = slots.filter(s => {
-    if (!s.isActive) return false;
+    if (!s || !s._id || !s.isActive) return false;
     if (filters.slotType && s.slotType !== filters.slotType) return false;
     return true;
   });
 
-  const available = filteredSlots.filter(s => s.isAvailableForSlot !== false);
-  const unavailable = filteredSlots.filter(s => s.isAvailableForSlot === false);
+  const availCount = filteredSlots.filter(s => s.isAvailableForSlot !== false).length;
+  const bookedCount = filteredSlots.filter(s => s.isAvailableForSlot === false).length;
 
   return (
     <Layout>
       <PageWrapper initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <PageHeader>
           <div>
-            <Title size="1.8rem">Parking Slots</Title>
-            <Text muted size="14px" style={{ marginTop: 4 }}>
-              Search availability and book your spot
-            </Text>
+            <Title size="1.6rem">Parking Slots</Title>
+            <Text muted size="13px" style={{ marginTop: 3 }}>Search and book your spot</Text>
           </div>
         </PageHeader>
 
-        {/* Filter Bar */}
-        <FilterBar>
-          <Flex gap="12px" wrap="wrap" align="flex-end">
-            <InputGroup style={{ flex: '1 1 140px' }}>
+        {/* Filter */}
+        <FilterPanel>
+          <FilterGrid>
+            <InputGroup>
               <Label>Date</Label>
               <Input type="date" value={filters.date}
                 min={new Date().toISOString().split('T')[0]}
                 onChange={e => setFilters({ ...filters, date: e.target.value })} />
             </InputGroup>
-            <InputGroup style={{ flex: '1 1 120px' }}>
+            <InputGroup>
               <Label>Start Time</Label>
               <Input type="time" value={filters.startTime}
                 onChange={e => setFilters({ ...filters, startTime: e.target.value })} />
             </InputGroup>
-            <InputGroup style={{ flex: '1 1 120px' }}>
+            <InputGroup>
               <Label>End Time</Label>
               <Input type="time" value={filters.endTime}
                 onChange={e => setFilters({ ...filters, endTime: e.target.value })} />
             </InputGroup>
-            <InputGroup style={{ flex: '1 1 140px' }}>
+            <InputGroup>
               <Label>Vehicle Type</Label>
               <Select value={filters.slotType}
                 onChange={e => setFilters({ ...filters, slotType: e.target.value })}>
                 <option value="">All Types</option>
-                <option value="four-wheeler">Four Wheeler 🚗</option>
-                <option value="two-wheeler">Two Wheeler 🏍️</option>
+                <option value="four-wheeler">🚗 4-Wheeler</option>
+                <option value="two-wheeler">🏍️ 2-Wheeler</option>
               </Select>
             </InputGroup>
-            <Button onClick={handleSearch} style={{ minWidth: 140 }}>
-              <MdFilterList /> Check Availability
+            <Button onClick={handleSearch}>
+              <MdSearch /> Search
             </Button>
-          </Flex>
-        </FilterBar>
+          </FilterGrid>
+        </FilterPanel>
+
+        {searched && !loading && (
+          <Text muted size="12px" style={{ marginBottom: 14 }}>
+            ✅ {availCount} available · ❌ {bookedCount} booked ·{' '}
+            {filters.date} · {filters.startTime}–{filters.endTime}
+          </Text>
+        )}
 
         {loading ? (
           <Flex justify="center" style={{ padding: 60 }}>
             <Spinner size="40px" />
           </Flex>
+        ) : filteredSlots.length === 0 ? (
+          <EmptyState>
+            <div className="icon"><MdLocalParking /></div>
+            <div className="title">No slots found</div>
+            <div className="desc">Try changing filters or ask admin to add slots.</div>
+          </EmptyState>
         ) : (
-          <>
-            {searched && (
-              <Flex gap="16px" style={{ marginBottom: 20, flexWrap: 'wrap' }}>
-                <Text muted size="13px">
-                  ✅ {available.length} available &nbsp;·&nbsp; ❌ {unavailable.length} booked
-                  &nbsp;·&nbsp; {filters.date} &nbsp;·&nbsp; {filters.startTime}–{filters.endTime}
-                </Text>
-              </Flex>
-            )}
-
-            {filteredSlots.length === 0 ? (
-              <EmptyState>
-                <div className="icon"><MdLocalParking /></div>
-                <div className="title">No slots found</div>
-                <div className="desc">Try changing filters or ask admin to add slots.</div>
-              </EmptyState>
-            ) : (
-              <motion.div variants={container} initial="hidden" animate="show">
-                <Grid cols="repeat(auto-fill, minmax(200px, 1fr))" gap="16px">
-                  {filteredSlots.map(slot => {
-                    const isAvail = !searched || slot.isAvailableForSlot !== false;
-                    return (
-                      <SlotCard
-                        key={slot._id}
-                        variants={cardAnim}
-                        available={isAvail}
-                        category={slot.category}
-                        onClick={() => isAvail && openBookingModal(slot)}
-                      >
-                        <div className="slot-icon">
-                          {slot.slotType === 'two-wheeler' ? '🏍️' : '🚗'}
-                        </div>
-                        <Flex gap="8px" align="center" style={{ marginBottom: 12 }}>
-                          <SlotStatusDot available={isAvail} />
-                          <span style={{ fontSize: 11, color: isAvail ? '#10b981' : '#ef4444', fontWeight: 700 }}>
-                            {isAvail ? 'AVAILABLE' : 'BOOKED'}
-                          </span>
-                        </Flex>
-                        <div className="slot-number">{slot.slotNumber}</div>
-                        <Flex gap="6px" wrap="wrap">
-                          <Badge status={slot.category}>{slot.category}</Badge>
-                          <Badge status={slot.slotType === 'two-wheeler' ? 'waiting' : 'active'}>
-                            {slot.slotType === 'two-wheeler' ? '2W' : '4W'}
-                          </Badge>
-                        </Flex>
-                        <Text muted size="12px" style={{ marginTop: 8 }}>Floor: {slot.floor || 'G'}</Text>
-                        {isAvail && (
-                          <Button fullWidth size="sm" style={{ marginTop: 14 }}
-                            onClick={e => { e.stopPropagation(); openBookingModal(slot); }}>
-                            <MdBookmark /> Book Now
-                          </Button>
-                        )}
-                      </SlotCard>
-                    );
-                  })}
-                </Grid>
-              </motion.div>
-            )}
-          </>
+          <motion.div variants={container} initial="hidden" animate="show">
+            <Grid cols="repeat(auto-fill, minmax(180px, 1fr))" mobileCols="1fr 1fr" gap="12px" mobileGap="8px">
+              {filteredSlots.map(slot => {
+                const isAvail = !searched || slot.isAvailableForSlot !== false;
+                return (
+                  <SlotCard
+                    key={slot._id}
+                    variants={cardAnim}
+                    isAvail={isAvail}
+                    category={slot.category || 'general'}
+                    onClick={() => isAvail && openModal(slot)}
+                  >
+                    <div className="top">
+                      <div className="slot-icon">
+                        {slot.slotType === 'two-wheeler' ? '🏍️' : '🚗'}
+                      </div>
+                      <Flex gap="6px" align="center" style={{ marginBottom: 8 }}>
+                        <StatusDot isAvail={isAvail} />
+                        <span style={{
+                          fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
+                          color: isAvail ? '#10b981' : '#ef4444'
+                        }}>
+                          {isAvail ? 'Available' : 'Booked'}
+                        </span>
+                      </Flex>
+                      <div className="slot-number">{slot.slotNumber}</div>
+                      <Flex gap="5px" wrap="wrap">
+                        <Badge status={slot.category || 'general'}>{slot.category || 'general'}</Badge>
+                        <Badge status={slot.slotType === 'two-wheeler' ? 'waiting' : 'active'}>
+                          {slot.slotType === 'two-wheeler' ? '2W' : '4W'}
+                        </Badge>
+                      </Flex>
+                    </div>
+                    <div className="bottom">
+                      <Text muted size="11px" style={{ marginBottom: isAvail ? 8 : 0 }}>
+                        Floor {slot.floor || 'G'}
+                      </Text>
+                      {isAvail && (
+                        <Button fullWidth size="sm"
+                          onClick={e => { e.stopPropagation(); openModal(slot); }}>
+                          <MdBookmark /> Book
+                        </Button>
+                      )}
+                    </div>
+                  </SlotCard>
+                );
+              })}
+            </Grid>
+          </motion.div>
         )}
       </PageWrapper>
 
-      {/* Booking Modal */}
+      {/* Booking Modal — bottom sheet on mobile */}
       <AnimatePresence>
         {selectedSlot && (
-          <BookingModal>
-            <ModalOverlay
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setSelectedSlot(null)}
-            />
-            <ModalCard
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+          <ModalBackdrop
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setSelectedSlot(null)}
+          >
+            <ModalSheet
+              onClick={e => e.stopPropagation()}
+              initial={{ opacity: 0, y: 60 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 60 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+              maxWidth="440px"
             >
-              <Flex justify="space-between" align="center" style={{ marginBottom: 20 }}>
+              <Flex justify="space-between" align="center" style={{ marginBottom: 18 }}>
                 <div>
-                  <Title size="1.2rem">Book Slot</Title>
-                  <Text muted size="13px">Confirm your reservation</Text>
+                  <Title size="1.1rem">Book Slot</Title>
+                  <Text muted size="12px">Confirm your reservation</Text>
                 </div>
-                <button onClick={() => setSelectedSlot(null)} style={{ background:'none', border:'none', color:'#64748b', fontSize:20, cursor:'pointer' }}>
+                <button onClick={() => setSelectedSlot(null)} style={{
+                  background: 'none', border: 'none', color: '#64748b',
+                  fontSize: 22, cursor: 'pointer', padding: 4,
+                  minHeight: 44, display: 'flex', alignItems: 'center'
+                }}>
                   <MdClose />
                 </button>
               </Flex>
 
-              <Card style={{ marginBottom: 20, padding: 16, background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.2)' }}>
-                <Flex gap="12px">
-                  <div style={{ fontSize: 28 }}>{selectedSlot.slotType === 'two-wheeler' ? '🏍️' : '🚗'}</div>
+              {/* Slot preview */}
+              <div style={{
+                padding: '14px 16px', marginBottom: 18, borderRadius: 12,
+                background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.2)'
+              }}>
+                <Flex gap="12px" align="center">
+                  <span style={{ fontSize: 28 }}>
+                    {selectedSlot.slotType === 'two-wheeler' ? '🏍️' : '🚗'}
+                  </span>
                   <div>
-                    <Text style={{ fontWeight: 700, fontSize: 16 }}>Slot {selectedSlot.slotNumber}</Text>
-                    <Flex gap="6px" style={{ marginTop: 4 }}>
-                      <Badge status={selectedSlot.category}>{selectedSlot.category}</Badge>
+                    <Text style={{ fontWeight: 800, fontSize: 18, fontFamily: 'Orbitron, sans-serif' }}>
+                      {selectedSlot.slotNumber}
+                    </Text>
+                    <Flex gap="5px" style={{ marginTop: 4 }}>
+                      <Badge status={selectedSlot.category || 'general'}>
+                        {selectedSlot.category || 'general'}
+                      </Badge>
                       <Badge status="active">Floor {selectedSlot.floor || 'G'}</Badge>
                     </Flex>
                   </div>
                 </Flex>
-              </Card>
+              </div>
 
-              <Flex gap="12px" style={{ marginBottom: 14 }}>
-                <InputGroup style={{ flex: 1 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 14 }}>
+                <InputGroup>
                   <Label>Date</Label>
                   <Input type="date" value={filters.date} readOnly />
                 </InputGroup>
-              </Flex>
-              <Flex gap="12px" style={{ marginBottom: 20 }}>
-                <InputGroup style={{ flex: 1 }}>
-                  <Label>Start Time</Label>
-                  <Input type="time" value={bookingForm.startTime}
-                    onChange={e => setBookingForm({ ...bookingForm, startTime: e.target.value })} />
-                </InputGroup>
-                <InputGroup style={{ flex: 1 }}>
-                  <Label>End Time</Label>
-                  <Input type="time" value={bookingForm.endTime}
-                    onChange={e => setBookingForm({ ...bookingForm, endTime: e.target.value })} />
-                </InputGroup>
-              </Flex>
+                <Flex gap="10px">
+                  <InputGroup style={{ flex: 1 }}>
+                    <Label>Start Time</Label>
+                    <Input type="time" value={bookingForm.startTime}
+                      onChange={e => setBookingForm({ ...bookingForm, startTime: e.target.value })} />
+                  </InputGroup>
+                  <InputGroup style={{ flex: 1 }}>
+                    <Label>End Time</Label>
+                    <Input type="time" value={bookingForm.endTime}
+                      onChange={e => setBookingForm({ ...bookingForm, endTime: e.target.value })} />
+                  </InputGroup>
+                </Flex>
+              </div>
 
-              <Flex gap="6px" style={{ marginBottom: 16, padding: '10px 12px', background:'rgba(245,158,11,0.08)', borderRadius:8, border:'1px solid rgba(245,158,11,0.2)' }}>
-                <MdInfoOutline color="#f59e0b" style={{ flexShrink: 0, marginTop: 2 }} />
+              {/* Grace period warning */}
+              <Flex gap="8px" style={{
+                padding: '10px 12px', marginBottom: 20,
+                background: 'rgba(245,158,11,0.07)', borderRadius: 10,
+                border: '1px solid rgba(245,158,11,0.2)'
+              }}>
+                <MdInfoOutline color="#f59e0b" size={16} style={{ flexShrink: 0, marginTop: 1 }} />
                 <Text size="12px" muted>
-                  You have a <strong style={{ color:'#f59e0b' }}>15-min grace period</strong> to mark arrival after start time, or booking auto-cancels.
+                  <strong style={{ color: '#f59e0b' }}>15-min grace period</strong> to mark
+                  arrival after start time, or booking auto-cancels.
                 </Text>
               </Flex>
 
               <Flex gap="10px">
-                <Button variant="ghost" fullWidth onClick={() => setSelectedSlot(null)}>Cancel</Button>
+                <Button variant="ghost" fullWidth onClick={() => setSelectedSlot(null)}>
+                  Cancel
+                </Button>
                 <Button fullWidth onClick={handleBook} disabled={bookingLoading}>
                   {bookingLoading ? <Spinner size="16px" /> : '🎉 Confirm Booking'}
                 </Button>
               </Flex>
-            </ModalCard>
-          </BookingModal>
+            </ModalSheet>
+          </ModalBackdrop>
         )}
       </AnimatePresence>
     </Layout>
