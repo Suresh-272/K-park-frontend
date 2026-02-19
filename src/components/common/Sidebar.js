@@ -275,6 +275,8 @@ export default function Sidebar() {
           <NavItem to="/slots" onClick={close}><MdLocalParking />Parking Slots</NavItem>
           <NavItem to="/bookings" onClick={close}><MdBookmark />My Bookings</NavItem>
           <NavItem to="/waitlist" onClick={close}><MdQueue />Waitlist</NavItem>
+          <NavItem to="/profile" onClick={close}><MdPerson />Profile</NavItem>
+
         </NavSection>
 
         {isAdmin && (
@@ -286,6 +288,7 @@ export default function Sidebar() {
               <AdminNavItem to="/admin/slots" onClick={close}><MdGridView />Slot Management</AdminNavItem>
               <AdminNavItem to="/admin/users" onClick={close}><MdPerson />Users</AdminNavItem>
               <AdminNavItem to="/admin/bookings" onClick={close}><MdBookmark />All Bookings</AdminNavItem>
+
             </NavSection>
           </>
         )}

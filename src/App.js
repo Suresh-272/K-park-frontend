@@ -13,6 +13,7 @@ import DashboardPage from './pages/DashboardPage';
 import SlotsPage from './pages/SlotsPage';
 import BookingsPage from './pages/BookingsPage';
 import WaitlistPage from './pages/WaitlistPage';
+import ProfilePage from './pages/ProfilePage';
 
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -55,6 +56,7 @@ function AppRoutes() {
       <Route path="/slots" element={<PrivateRoute><SlotsPage /></PrivateRoute>} />
       <Route path="/bookings" element={<PrivateRoute><BookingsPage /></PrivateRoute>} />
       <Route path="/waitlist" element={<PrivateRoute><WaitlistPage /></PrivateRoute>} />
+      <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
 
       {/* Admin routes */}
       <Route path="/admin/dashboard" element={<AdminRoute><ErrorBoundary><AdminDashboard /></ErrorBoundary></AdminRoute>} />
