@@ -72,6 +72,19 @@ const LogoArea = styled.div`
   text-align: center;
   margin-bottom: 24px;
 
+  .logo-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+  .logo-img {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    object-fit: cover;
+    box-shadow: 0 0 20px rgba(59,130,246,0.3);
+  }
   .brand {
     font-family: ${({ theme }) => theme.fonts.display};
     font-size: 1.8rem;
@@ -201,13 +214,16 @@ export default function AuthPage() {
   return (
     <Page>
       <BgOrb /><BgOrb />
-      {/* <FloatIcon size="36px" dur="6s" style={{ top:'8%', left:'6%' }}>🅿️</FloatIcon>
+      <FloatIcon size="36px" dur="6s" style={{ top:'8%', left:'6%' }}>🅿️</FloatIcon>
       <FloatIcon size="26px" dur="5s" delay="1s" style={{ top:'25%', right:'8%' }}>🚗</FloatIcon>
-      <FloatIcon size="30px" dur="7s" delay="2s" style={{ bottom:'18%', left:'10%' }}>🔑</FloatIcon> */}
+      <FloatIcon size="30px" dur="7s" delay="2s" style={{ bottom:'18%', left:'10%' }}>🔑</FloatIcon>
 
       <FormCard initial={{ opacity:0, y:28 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.45 }}>
         <LogoArea>
-          <div className="brand">⬡ K-PARK</div>
+          <div className="logo-row">
+            <img src="/logo.png" alt="K-Park" className="logo-img" />
+            <div className="brand">K-PARK</div>
+          </div>
           <div className="sub">Smart Corporate Parking</div>
         </LogoArea>
 

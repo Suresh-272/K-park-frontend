@@ -262,9 +262,12 @@ export default function Sidebar() {
 
       <SidebarWrap open={open}>
         <Logo>
-          <div>
-            <div className="brand">⬡ K-PARK</div>
-            <div className="tagline"><span className="dot" />Smart Parking</div>
+          <div style={{ display:'flex', alignItems:'center', gap: 10 }}>
+            <img src="/logo.png" alt="K-Park" style={{ width:38, height:38, borderRadius:10, objectFit:'cover', flexShrink:0 }} />
+            <div>
+              <div className="brand">K-PARK</div>
+              <div className="tagline"><span className="dot" />Smart Parking</div>
+            </div>
           </div>
           <CloseBtn onClick={close}><MdClose /></CloseBtn>
         </Logo>
@@ -275,8 +278,6 @@ export default function Sidebar() {
           <NavItem to="/slots" onClick={close}><MdLocalParking />Parking Slots</NavItem>
           <NavItem to="/bookings" onClick={close}><MdBookmark />My Bookings</NavItem>
           <NavItem to="/waitlist" onClick={close}><MdQueue />Waitlist</NavItem>
-          <NavItem to="/profile" onClick={close}><MdPerson />Profile</NavItem>
-
         </NavSection>
 
         {isAdmin && (
@@ -288,7 +289,6 @@ export default function Sidebar() {
               <AdminNavItem to="/admin/slots" onClick={close}><MdGridView />Slot Management</AdminNavItem>
               <AdminNavItem to="/admin/users" onClick={close}><MdPerson />Users</AdminNavItem>
               <AdminNavItem to="/admin/bookings" onClick={close}><MdBookmark />All Bookings</AdminNavItem>
-
             </NavSection>
           </>
         )}
@@ -303,7 +303,10 @@ export default function Sidebar() {
 
       {/* Mobile top bar shows on scroll */}
       <MobileHeader>
-        <div className="brand">⬡ K-PARK</div>
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          <img src="/logo.png" alt="K-Park" style={{ width:28, height:28, borderRadius:7, objectFit:'cover' }} />
+          <div className="brand">K-PARK</div>
+        </div>
       </MobileHeader>
     </>
   );
