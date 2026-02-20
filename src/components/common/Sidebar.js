@@ -278,6 +278,8 @@ export default function Sidebar() {
           <NavItem to="/slots" onClick={close}><MdLocalParking />Parking Slots</NavItem>
           <NavItem to="/bookings" onClick={close}><MdBookmark />My Bookings</NavItem>
           <NavItem to="/waitlist" onClick={close}><MdQueue />Waitlist</NavItem>
+          <NavItem to="/profile" onClick={close}><MdPerson />Profile</NavItem>
+
         </NavSection>
 
         {isAdmin && (
