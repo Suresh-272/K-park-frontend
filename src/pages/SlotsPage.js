@@ -349,7 +349,7 @@ export default function SlotsPage() {
               }}>
                 <MdInfoOutline color="#f59e0b" size={16} style={{ flexShrink: 0, marginTop: 1 }} />
                 <Text size="12px" muted>
-                  <strong style={{ color: '#f59e0b' }}>15-min grace period</strong> to mark
+                  <strong style={{ color: '#f59e0b' }}>120-min grace period</strong> to mark
                   arrival after start time, or booking auto-cancels.
                 </Text>
               </Flex>
