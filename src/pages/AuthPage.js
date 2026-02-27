@@ -202,9 +202,37 @@ export default function AuthPage() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    setLoading(true); setError('');
+    setError('');
+
+    // ── Frontend validation ──────────────────────────────────────────────────
+    if (!regForm.name.trim() || regForm.name.trim().length < 2) {
+      return setError('Name must be at least 2 characters.');
+    }
+    if (!/^\S+@\S+\.\S+$/.test(regForm.email)) {
+      return setError('Please enter a valid email address.');
+    }
+
+    // Normalize phone: strip spaces/dashes, add +91 if needed
+    const rawDigits = regForm.phone.replace(/\D/g, '');
+    let normalizedPhone = regForm.phone.trim();
+    if (rawDigits.length === 10) normalizedPhone = `+91${rawDigits}`;
+    else if (rawDigits.startsWith('91') && rawDigits.length === 12) normalizedPhone = `+${rawDigits}`;
+    else if (rawDigits.startsWith('0') && rawDigits.length === 11) normalizedPhone = `+91${rawDigits.slice(1)}`;
+
+    if (!/^\+91[6-9]\d{9}$/.test(normalizedPhone)) {
+      return setError('Phone must be a valid Indian mobile number (10 digits, starting with 6-9). E.g. 98765 43210');
+    }
+
+    if (regForm.password.length < 6) {
+      return setError('Password must be at least 6 characters.');
+    }
+    if (!regForm.vehicleNumber.trim()) {
+      return setError('Vehicle number is required.');
+    }
+
+    setLoading(true);
     try {
-      const user = await register(regForm);
+      const user = await register({ ...regForm, phone: normalizedPhone });
       toast.success(`Welcome, ${user.name}! 🎉`);
       navigate('/dashboard');
     } catch (err) { setError(err.response?.data?.message || 'Registration failed'); }
@@ -296,12 +324,21 @@ export default function AuthPage() {
                   </IconInput>
                 </InputGroup>
                 <InputGroup>
-                  <Label>WhatsApp</Label>
+                  <Label>Phone Number</Label>
                   <IconInput>
                     <MdPhone />
-                    <Input placeholder="+916374..." required
-                      value={regForm.phone} onChange={e => setRegForm({...regForm, phone:e.target.value})} />
+                    <Input
+                      placeholder="98765 43210"
+                      required
+                      inputMode="numeric"
+                      maxLength={13}
+                      value={regForm.phone}
+                      onChange={e => setRegForm({...regForm, phone: e.target.value})}
+                    />
                   </IconInput>
+                  <span style={{ fontSize:10, color:'#475569', marginTop:3, display:'block' }}>
+                    Indian mobile number (10 digits, e.g. 98765 43210 or +91...)
+                  </span>
                 </InputGroup>
                 <InputGroup>
                   <Label>Vehicle No.</Label>
